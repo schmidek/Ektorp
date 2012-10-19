@@ -2,6 +2,8 @@ package org.ektorp.android.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.ektorp.CouchDbConnector;
 import org.ektorp.DbAccessException;
@@ -13,6 +15,9 @@ import org.ektorp.changes.DocumentChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import android.os.AsyncTask;
+import android.os.Build;
+import android.util.Log;
 import android.widget.BaseAdapter;
 
 /**
@@ -109,7 +114,12 @@ public abstract class CouchbaseViewListAdapter extends BaseAdapter {
 								.build();
 
 						couchChangesAsyncTask = new CouchbaseListChangesAsyncTask(couchDbConnector, changesCmd);
-						couchChangesAsyncTask.execute();
+            if (Build.VERSION.SDK_INT >= 11) {
+              Executor executor = Executors.newSingleThreadScheduledExecutor();
+              couchChangesAsyncTask.executeOnExecutor(executor);
+            }else{
+              couchChangesAsyncTask.execute();
+            }
 					}
 
 					if(lastUpdateChangesFeed > lastUpdateView) {
@@ -128,8 +138,7 @@ public abstract class CouchbaseViewListAdapter extends BaseAdapter {
 				}
 
 			};
-
-			updateListItemsTask.execute();
+      updateListItemsTask.execute();
 		}
 	}
 
